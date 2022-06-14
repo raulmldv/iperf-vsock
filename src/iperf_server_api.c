@@ -514,48 +514,6 @@ iperf_run_server(struct iperf_test *test)
 		    }
 
 #if defined(HAVE_TCP_CONGESTION)
-		    if (test->protocol->id == Ptcp) {
-			if (test->congestion) {
-			    if (setsockopt(s, IPPROTO_TCP, TCP_CONGESTION, test->congestion, strlen(test->congestion)) < 0) {
-				/*
-				 * ENOENT means we tried to set the
-				 * congestion algorithm but the algorithm
-				 * specified doesn't exist.  This can happen
-				 * if the client and server have different
-				 * congestion algorithms available.  In this
-				 * case, print a warning, but otherwise
-				 * continue.
-				 */
-				if (errno == ENOENT) {
-				    warning("TCP congestion control algorithm not supported");
-				}
-				else {
-				    saved_errno = errno;
-				    close(s);
-				    cleanup_server(test);
-				    errno = saved_errno;
-				    i_errno = IESETCONGESTION;
-				    return -1;
-				}
-			    } 
-			}
-			{
-			    socklen_t len = TCP_CA_NAME_MAX;
-			    char ca[TCP_CA_NAME_MAX + 1];
-			    if (getsockopt(s, IPPROTO_TCP, TCP_CONGESTION, ca, &len) < 0) {
-				saved_errno = errno;
-				close(s);
-				cleanup_server(test);
-				errno = saved_errno;
-				i_errno = IESETCONGESTION;
-				return -1;
-			    }
-			    test->congestion_used = strdup(ca);
-			    if (test->debug) {
-				printf("Congestion algorithm is %s\n", test->congestion_used);
-			    }
-			}
-		    }
 #endif /* HAVE_TCP_CONGESTION */
 
                     if (!is_closed(s)) {
